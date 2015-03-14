@@ -31,11 +31,12 @@
 #define __QCAMERA_TYPES_H__
 
 #include <stdint.h>
+#include <string.h>
 #include <pthread.h>
 #include <inttypes.h>
 #include <media/msmb_camera.h>
 
-#define CAM_MAX_NUM_BUFS_PER_STREAM 24
+#define CAM_MAX_NUM_BUFS_PER_STREAM 64
 #define MAX_METADATA_PRIVATE_PAYLOAD_SIZE 1024
 
 #define CEILING64(X) (((X) + 0x0003F) & 0xFFFFFFC0)
@@ -56,7 +57,6 @@
  *  dump the image to the file
  **/
 #define CAM_DUMP_TO_FILE(path, name, index, extn, p_addr, len) ({ \
-  int rc = 0; \
   char filename[CAM_FN_CNT]; \
   if (index >= 0) \
     snprintf(filename, CAM_FN_CNT-1, "%s/%s%d.%s", path, name, index, extn); \
@@ -64,7 +64,7 @@
     snprintf(filename, CAM_FN_CNT-1, "%s/%s.%s", path, name, extn); \
   FILE *fp = fopen(filename, "w+"); \
   if (fp) { \
-    rc = fwrite(p_addr, 1, len, fp); \
+    fwrite(p_addr, 1, len, fp); \
     ALOGE("%s:%d] written size %d", __func__, __LINE__, len); \
     fclose(fp); \
   } else { \
@@ -111,7 +111,7 @@
 
 #define MAX_AF_BRACKETING_VALUES 5
 #define MAX_TEST_PATTERN_CNT     8
-#define MAX_AVAILABLE_CAPABILITIES 4
+#define MAX_AVAILABLE_CAPABILITIES 6
 
 #define GPS_PROCESSING_METHOD_SIZE 33
 #define GPS_PROCESSING_METHOD_SIZE_IN_WORD (33+3)/4

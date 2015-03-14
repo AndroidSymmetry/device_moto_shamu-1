@@ -64,6 +64,8 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml \
     frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:system/etc/permissions/android.hardware.camera.flash-autofocus.xml \
     frameworks/native/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
+    frameworks/native/data/etc/android.hardware.camera.full.xml:system/etc/permissions/android.hardware.camera.full.xml \
+    frameworks/native/data/etc/android.hardware.camera.raw.xml:system/etc/permissions/android.hardware.camera.raw.xml \
     frameworks/native/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
     frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
     frameworks/native/data/etc/android.hardware.wifi.direct.xml:system/etc/permissions/android.hardware.wifi.direct.xml \
@@ -81,7 +83,8 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.audio.low_latency.xml:system/etc/permissions/android.hardware.audio.low_latency.xml \
     frameworks/native/data/etc/android.hardware.bluetooth_le.xml:system/etc/permissions/android.hardware.bluetooth_le.xml \
     frameworks/native/data/etc/android.hardware.telephony.cdma.xml:system/etc/permissions/android.hardware.telephony.cdma.xml \
-    frameworks/native/data/etc/android.hardware.ethernet.xml:system/etc/permissions/android.hardware.ethernet.xml
+    frameworks/native/data/etc/android.hardware.ethernet.xml:system/etc/permissions/android.hardware.ethernet.xml \
+    frameworks/native/data/etc/android.hardware.opengles.aep.xml:system/etc/permissions/android.hardware.opengles.aep.xml
 
 # For GPS
 PRODUCT_COPY_FILES += \
@@ -89,7 +92,7 @@ PRODUCT_COPY_FILES += \
 
 # Touch firmware updater
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/init.mmi.touch.sh:root/init.mmi.touch.sh
+    $(LOCAL_PATH)/init.mmi.touch.sh:system/bin/init.mmi.touch.sh
 
 # Add WiFi Firmware
 $(call inherit-product-if-exists, hardware/broadcom/wlan/bcmdhd/firmware/bcm4356/device-bcm.mk)
@@ -102,14 +105,14 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     device/moto/shamu/spn-conf.xml:system/etc/spn-conf.xml
 
-PRODUCT_TAGS += dalvik.gc.type-precise
-
 # This device is 560dpi.  However the platform doesn't
 # currently contain all of the bitmaps at 560dpi density so
 # we do this little trick to fall back to the xxhdpi version
 # if the 560dpi doesn't exist.
-PRODUCT_AAPT_CONFIG := normal hdpi xhdpi xxhdpi 560dpi xxxhdpi
+PRODUCT_AAPT_CONFIG := normal
 PRODUCT_AAPT_PREF_CONFIG := 560dpi
+# A list of dpis to select prebuilt apk, in precedence order.
+PRODUCT_AAPT_PREBUILT_DPI := xxxhdpi xxhdpi xhdpi hdpi
 
 PRODUCT_CHARACTERISTICS := nosdcard
 
@@ -202,7 +205,7 @@ PRODUCT_PACKAGES += \
     qrngd
 
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.opengles.version=196608
+    ro.opengles.version=196609
 
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.sf.lcd_density=560
@@ -214,7 +217,12 @@ PRODUCT_PROPERTY_OVERRIDES += \
     rild.libpath=/system/vendor/lib/libril-qc-qmi-1.so
 
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.radio.apm_sim_not_pwdn=1
+    persist.radio.apm_sim_not_pwdn=1 \
+    persist.radio.no_wait_for_card=1
+
+#Reduce IMS logging
+PRODUCT_PROPERTY_OVERRIDES += \
+    persist.ims.disableDebugLogs=1
 
 #Disable QC Oem Hook
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -232,9 +240,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.telephony.default_network=10 \
     telephony.lteOnCdmaDevice=1
 
-# SIM based FSG loading default enabled
+# SIM based FSG loading & MCFG activation
 PRODUCT_PROPERTY_OVERRIDES += \
     persist.radio.fsg_reload_on=1 \
+    persist.radio.mcfg_enabled=1
 
 # Camera configuration
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
@@ -263,9 +272,7 @@ PRODUCT_PACKAGES += \
     gps.msm8084 \
     flp.msm8084 \
     liblbs_core \
-    flp.conf \
-    gsiff_daemon \
-    sap.conf
+    flp.conf
 
 # NFC packages
 PRODUCT_PACKAGES += \
@@ -299,7 +306,7 @@ PRODUCT_COPY_FILES += \
 endif
 
 # Enable for volte call
-AUDIO_FEATURE_ENABLED_MULTI_VOICE_SESSIONS := false
+AUDIO_FEATURE_ENABLED_MULTI_VOICE_SESSIONS := true
 
 PRODUCT_PROPERTY_OVERRIDES += \
    ro.hwui.texture_cache_size=72 \
@@ -347,3 +354,7 @@ PRODUCT_OEM_PROPERTIES := \
     ro.config.wallpaper_component \
     ro.oem.* \
     oem.*
+
+# Copy the qcril.db file from qcril to system. Useful to get the radio tech family for the camped operator
+PRODUCT_COPY_FILES += \
+    device/moto/shamu/qcril.db:system/etc/ril/qcril.db
